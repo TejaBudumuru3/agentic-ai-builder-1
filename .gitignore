@@ -11,3 +11,5 @@ packages/model/llm/utils.js
 packages/model/types.js
 .env
 .env.local
+.vercel
+.env*.local
