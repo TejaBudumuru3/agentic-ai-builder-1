@@ -3,11 +3,31 @@
 A multi-agent system designed to build complete, playable browser games from text prompts using structured reasoning and autonomous code generation.
 
 ---
-### 📖 Documentation
+### Documentation
 - [**Detailed Architecture & DB Schema**](./ARCHITECTURE.md)
 ---
+### File Structure:
+```
+agentic-ai-builder-1/
+├── apps/
+│   └── web/                # Next.js/Frontend (Vercel deployment)
+├── packages/
+│   ├── agents/             # Agent Logic
+│   │   ├── clarifier.ts    # Logic for user requirement gathering
+│   │   ├── planner.ts      # Technical blueprinting (JSON generation)
+│   │   └── coder.ts        # Source code generation (HTML/CSS/JS)
+│   ├── controller/         # Orchestration & State Management
+│   └── model/
+|        ├── db/            # Schema & DB Client (Prisma/PostgreSQL)
+|        └── llm/           # LLM client talks to LLM models (Openrouter.ai free models)
+├── output/                 # Generated game files
+├── main.ts                 # Entry point (CLI)
+├── ARCHITECTURE.md         # Documentation
+├── Dockerfile              # Containerization
+└── package.json            
+```
 
-## 🚀 How to Run
+##  How to Run
 
 ### Prerequisites
 - Node.js (v22+)
@@ -31,6 +51,18 @@ A multi-agent system designed to build complete, playable browser games from tex
     ```env
     DATABASE_URL="your-postgresql-url"
     OPENROUTER_API_KEY="your-api-key"
+    OPENROUTER_MODEL="any-model=from-openrouter"
+    OPENROUTER_MODEL_BUILDER="any-model-from-openrouter"
+
+    # for frontend local run add below variables:
+
+    # === NextAuth ===
+    NEXTAUTH_URL=http://localhost:3000
+    NEXTAUTH_SECRET=""
+    
+    # === Google OAuth ===
+    GOOGLE_CLIENT_ID="google client id"
+    GOOGLE_CLIENT_SECRET="google secrets"
     ```
 
 4.  **Database Setup**:
@@ -39,14 +71,23 @@ A multi-agent system designed to build complete, playable browser games from tex
     npm run db:generate
     ```
 
-5.  **Start the Agent**:
+5.  **Start the Agent from CLI**:
     ```bash
     npm start
     ```
 
+6. **Start the Agent from UI(frontend)**:
+    ```bash
+    cd apps\web
+    npm install
+    npm run build
+
+    npm run dev
+    ```
+   
 ---
 
-## 🏗 Agent Architecture
+##  Agent Architecture
 
 The system uses a **Controller-Agent** architecture to manage the lifecycle of a game's creation.
 
@@ -71,7 +112,7 @@ The system uses a **Controller-Agent** architecture to manage the lifecycle of a
 
 ---
 
-## 🛠 Trade-offs Made
+##  Trade-offs Made
 
 ### 3-File Output Constraint
 - **Why**: Reduced complexity for the LLM. By forcing everything into three standard files, we ensure the game remains portable and avoids build-step failures.
@@ -87,16 +128,15 @@ The system uses a **Controller-Agent** architecture to manage the lifecycle of a
 
 ---
 
-## 🔮 Improvements with More Time
+##  Improvements with More Time
 
 1.  **Iterative Refinement (QA Agent)**: Implement a "Reviewer" agent that runs the generated code and provides feedback to the Coder Agent to fix bugs automatically.
 2.  **Asset Generation**: Integrate with Dall-E or Midjourney APIs to generate actual sprite sheets instead of just using shapes.
 3.  **Advanced Frameworks**: Add support for Three.js for 3D games or React for UI-heavy games.
-4.  **Web UI Integration**: Fully bridge the CLI backend with the `apps/web` frontend for a more interactive dashboard experience.
 
 ---
 
-## 🐳 Docker Build and Run
+##  Docker Build and Run
 
 ### Build the Image
 ```bash
@@ -106,7 +146,17 @@ docker build -t agentic-ai-builder .
 ### Run the Container
 Since the agent is interactive (CLI), use the following command to run it:
 ```bash
-docker run -it --env-file .env agentic-ai-builder
+# for powershell: 
+docker run -it --env-file .env -v "${PWD}/output:/app/output" agentic-ai-builder
+
+# for CMD:
+
+docker run -it --env-file .env -v "%cd%/output:/app/output" agentic-ai-builder
+
+# for MACos/Linux:
+
+docker run -it --env-file .env -v "$(pwd)/output:/app/output" agentic-ai-builder
+
 ```
 > [!NOTE]
-> Ensure your `.env` file contains a valid `DATABASE_URL` that is accessible from within the container (e.g., a cloud-hosted Neon DB).
+> Ensure your `.env` file contains a valid `DATABASE_URL`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `OPENROUTER_MODEL_BUILDER` that is accessible from within the container (e.g., a cloud-hosted Neon DB).
