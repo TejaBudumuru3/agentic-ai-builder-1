@@ -2,6 +2,45 @@
 
 This document provides a deep dive into the technical architecture of the Agentic AI Builder.
 
+## Architechtual Diagram:
+```mermaid
+
+    graph TD
+    User((User))
+    
+    subgraph "Execution Layer (main.ts)"
+        CLI[CLI Loop]
+    end
+
+    subgraph "Orchestration Layer (packages/controller)"
+        Ctrl[Controller]
+        DB[(Prisma / Postgres)]
+    end
+
+    subgraph "Agentic Layer (packages/agents)"
+        Clar[Clarifier Agent]
+        Plan[Planner Agent]
+        Code[Coder Agent]
+    end
+
+    %% Flow
+    User -- "Prompt" --> CLI
+    CLI -- "poll status" --> Ctrl
+    Ctrl -- "read/write state" --> DB
+    
+    Ctrl -- "Status: INIT/CLARIFYING" --> Clar
+    Ctrl -- "Status: PLANNING" --> Plan
+    Ctrl -- "Status: BUILDING" --> Code
+
+    Clar -- "JSON Summary" --> DB
+    Plan -- "JSON Blueprint" --> DB
+    Code -- "3 Code Files" --> DB
+
+    Code -- "Result" --> CLI
+    CLI -- "Write to /output/{id}" --> FS[File System]
+    FS -- "Playable Game" --> User
+```
+
 ## System Flow
 
 The system follows a linear, state-driven multi-agent orchestration pattern.
